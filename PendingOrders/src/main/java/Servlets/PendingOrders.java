@@ -20,58 +20,36 @@ import Connector.OrderConnector;
 import Database.PendingOrdersData;
 import OrdersPojo.OrdersPojo;
 
-/**
- * Servlet implementation class PendingOrders
- */
 public class PendingOrders extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public PendingOrders() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+	public PendingOrders() {
+		super();
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		Gson gson=new Gson();
-		JSONObject obj=new JSONObject();
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		Gson gson = new Gson();
+		JSONObject obj = new JSONObject();
 		PendingOrdersData Obj1 = new PendingOrdersData();
 		ServletContext context = request.getServletContext();
 		OrderConnector ob = (OrderConnector) context.getAttribute("DB");
 		try {
-		Connection con=ob.getConnection();
+			Connection con = ob.getConnection();
 
-		OrdersPojo json=gson.fromJson(request.getReader(),OrdersPojo.class);
-		PrintWriter out=response.getWriter();
-		String str = Obj1.pendingOrders(json, con);
-		response.setContentType("application/JSON");
-		obj.put("message", str);
-		out.println(obj);
-		}catch (SQLException | NamingException e) {
+			OrdersPojo json = gson.fromJson(request.getReader(), OrdersPojo.class);
+			PrintWriter out = response.getWriter();
+			String str = Obj1.pendingOrders(json, con);
+			response.setContentType("application/JSON");
+			obj.put("message", str);
+			out.println(obj);
+		} catch (SQLException | NamingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
 	}
 
 }

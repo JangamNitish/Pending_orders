@@ -10,116 +10,116 @@ import OrdersPojo.OrdersPojo;
 
 public class PendingOrdersData {
 	Orderqueries queries = new Orderqueries();
-	
+
 	String buy = "buy";
 	String sell = "sell";
-	String excuted = "excuted";
+	String executed = "executed";
+	String bidstatus, askstatus;
 	String symbol;
-	int id,quantity,Price;
+	int id, quantity, Price;
 
-	
 	public String pendingOrders(OrdersPojo I, Connection con) throws SQLException {
-//		System.out.println(I.getAskPrice());
-//		System.out.println(I.getBidPrice());
-//		System.out.println(I.getQuantity());
-//		System.out.println(I.getSymbol());
-		askPriceOrders(I, con);		
-		if(I.getAskPrice()==0 && I.getBidPrice()>0) {
-			String str=bidOrders(I, con);
+		if (I.getAskPrice() == 0 && I.getBidPrice() > 0) {
+			String str = bidOrders(I, con);
 			return str;
-		}
-		else if(I.getAskPrice()>0 && I.getBidPrice()==0) {
-			String str=askPriceOrders(I, con);
+		} else if (I.getAskPrice() > 0 && I.getBidPrice() == 0) {
+			String str = askPriceOrders(I, con);
 			return str;
-		}
-		else if(I.getAskPrice()==0 && I.getBidPrice()==0 && I.getQuantity()==0 || I.getSymbol().equals(null)) {
-			return "enter correct parameters";
-		}
-		else if(I.getAskPrice()>0 && I.getBidPrice()>0) {
+		} else if (I.getAskPrice() == 0 || I.getBidPrice() == 0 && I.getQuantity() == 0 || I.getSymbol().equals(null)) {
+			return "enter correct values";
+
+		} else if (I.getAskPrice() > 0 && I.getBidPrice() > 0) {
 			return "enter a single price that is bid price or askprice";
-		}
-		else {	
-			return "enter valid cradentials";
+		} else {
+			return "enter valid credentials";
 		}
 	}
 
-	public String bidOrders(OrdersPojo I,Connection con) throws SQLException {
-		PreparedStatement SelectQuery=con.prepareStatement(queries.select());
+	// SELLING THE STOCK METHOD
+	public String bidOrders(OrdersPojo I, Connection con) throws SQLException {
+		PreparedStatement SelectQuery = con.prepareStatement(queries.select());
 		SelectQuery.setString(1, I.getSymbol());
-		SelectQuery.setString(2,sell);
-		ResultSet rs=SelectQuery.executeQuery();
-		if(rs.next()) {
-			symbol=rs.getString("symbol");
-			id=rs.getInt("id");
-			Price=rs.getInt("symbolprice");
-			quantity=rs.getInt("Quantity");
+		SelectQuery.setString(2, sell);
+		ResultSet rs = SelectQuery.executeQuery();
+		if (rs.next()) {
+			symbol = rs.getString("symbol");
+			id = rs.getInt("id");
+			Price = rs.getInt("symbolprice");
+			quantity = rs.getInt("Quantity");
+			bidstatus = rs.getString("status");
+			System.out.println(bidstatus + "Bid status is excuted");
+
 		}
-		System.out.println(id);
-		if(I.getSymbol().equals(symbol)) {
-			if(I.getBidPrice()>Price) {
-				if(I.getQuantity()<=quantity) {
-				PreparedStatement UpdateQuery=con.prepareStatement(queries.update());
-				PreparedStatement InsertQuery=con.prepareStatement(queries.insert());
-				UpdateQuery.setString(1,excuted);
-				UpdateQuery.setInt(2, id);
-				UpdateQuery.execute();
-				InsertQuery.setString(1,I.getSymbol() );
-				InsertQuery.setInt(2, I.getBidPrice());
-				InsertQuery.setString(3,sell);
-				InsertQuery.setInt(4, I.getQuantity());
-				InsertQuery.execute();
-				return "ordered sucessfully";
-			}
-				else {
+		if (I.getSymbol() == symbol || I.getSymbol().equals(symbol)) {
+			if (I.getBidPrice() > Price) {
+				if (I.getQuantity() <= quantity) {
+					if (bidstatus.equals("pending")) {
+						PreparedStatement UpdateQuery = con.prepareStatement(queries.update());
+						PreparedStatement InsertQuery = con.prepareStatement(queries.insert());
+						UpdateQuery.setString(1, executed);
+						UpdateQuery.setInt(2, id);
+						UpdateQuery.execute();
+						InsertQuery.setString(1, I.getSymbol());
+						InsertQuery.setInt(2, I.getBidPrice());
+						InsertQuery.setString(3, sell);
+						InsertQuery.setInt(4, I.getQuantity());
+						InsertQuery.execute();
+						return "ordered sucessfully";
+					} else {
+						return "Already Excuted";
+					}
+				} else
 					return "sufficient quantity is not present";
-				}
+			} else {
+				return " Bidprice is less than the price field in the row from the order_status table for that symbol";
 			}
-			else {
-				return "give bidprice is less than price";
-			}
-		}
-		else {
+		} else {
 			return "incorrect symbol given";
 		}
 	}
-public String askPriceOrders(OrdersPojo I,Connection con) throws SQLException {
-	PreparedStatement SelectQuery=con.prepareStatement(queries.select());
-	SelectQuery.setString(1, I.getSymbol());
-	SelectQuery.setString(2,buy);
-	ResultSet rs=SelectQuery.executeQuery();
-	while(rs.next()) {
-		symbol=rs.getString("symbol");
-		id=rs.getInt("id");
-		quantity=rs.getInt("Quantity");
-		Price=rs.getInt("symbolprice");
-		System.out.println();
-	}
 
-	if(I.getSymbol().equals(symbol)) {
-		if(I.getAskPrice()<Price) {
-			if(I.getQuantity()<=quantity) {
-			PreparedStatement UpdateQuery=con.prepareStatement(queries.update());
-			PreparedStatement InsertQuery=con.prepareStatement(queries.insert());
-			UpdateQuery.setString(1,excuted);
-			UpdateQuery.setInt(2, id);
-			UpdateQuery.execute();
-			InsertQuery.setString(1,I.getSymbol() );
-			InsertQuery.setInt(2, I.getAskPrice());
-			InsertQuery.setString(3,buy);
-			InsertQuery.setInt(4, I.getQuantity());
-			InsertQuery.execute();
-			return "ordered sucessfully";
+//BUYING THE STOCK METHOD
+	public String askPriceOrders(OrdersPojo I, Connection con) throws SQLException {
+		PreparedStatement SelectQuery = con.prepareStatement(queries.select());
+		SelectQuery.setString(1, I.getSymbol());
+		SelectQuery.setString(2, buy);
+		ResultSet rs = SelectQuery.executeQuery();
+		if (rs.next()) {
+			symbol = rs.getString("symbol");
+			id = rs.getInt("id");
+			quantity = rs.getInt("Quantity");
+			Price = rs.getInt("symbolprice");
+			askstatus = rs.getString("status");
+			System.out.println(askstatus);
+
 		}
-			else {
-				return "sufficient quantity is not present";
+		if (I.getSymbol().equals(symbol)) {
+			if (I.getAskPrice() < Price) {
+				if (I.getQuantity() <= quantity) {
+					if (askstatus.equals("pending")) {
+						PreparedStatement UpdateQuery = con.prepareStatement(queries.update());
+						PreparedStatement InsertQuery = con.prepareStatement(queries.insert());
+						UpdateQuery.setString(1, executed);
+						UpdateQuery.setInt(2, id);
+						UpdateQuery.execute();
+						InsertQuery.setString(1, I.getSymbol());
+						InsertQuery.setInt(2, I.getAskPrice());
+						InsertQuery.setString(3, buy);
+						InsertQuery.setInt(4, I.getQuantity());
+						InsertQuery.execute();
+						return "ordered sucessfully";
+					} else {
+						return "Already excuted ";
+					}
+				} else {
+					return "sufficient quantity is not present";
+				}
+			} else {
+				return "Askprice is greater than the price field in the row from the order_status table for that symbol";
 			}
+		} else {
+			return "incorrect symbol given";
 		}
-		else {
-			return "give askprice is less than price";
-		}
+
 	}
-	else {
-		return "incorrect symbol given";
-	}
-}
 }
