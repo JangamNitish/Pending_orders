@@ -47,7 +47,6 @@ public class PendingOrdersData {
 			Price = rs.getInt("symbolprice");
 			quantity = rs.getInt("Quantity");
 			bidstatus = rs.getString("status");
-			System.out.println(bidstatus + "Bid status is excuted");
 
 		}
 		if (I.getSymbol() == symbol || I.getSymbol().equals(symbol)) {
